@@ -1,0 +1,205 @@
+<div th:replace="shared/header"></div>
+<link rel="stylesheet" href="/webjars/adminlte/2.3.11/plugins/datepicker/datepicker3.css">
+<div class="col-md-12">
+    <div class="box">
+        <div class="box-header with-border">
+            <a href="javascript:void(0)" class="btn btn-primary btn-xs add-btn" th:title="'Create'+${pageTitle}">
+                <span class="glyphicon glyphicon-plus"></span>
+            </a>
+        </div>
+        <!-- /.box-header -->
+
+        <div class="box-body">
+            <div id="view-table" th:include="${viewPath+'/table'}"></div>
+        </div>
+        <!-- /.box-body -->
+        <div class="box-footer clearfix">
+            <ul class="pagination pagination-sm no-margin pull-right">
+                <li><a href="#">«</a></li>
+                <li><a href="#">1</a></li>
+                <li><a href="#">2</a></li>
+                <li><a href="#">3</a></li>
+                <li><a href="#">»</a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- /.box -->
+</div>
+<!--Modal lai component vitra rakhera yeha include gareko-->
+<div th:include="${viewPath}+'/components/employee-list-dialog'"></div>
+<div th:include="${viewPath}+'/components/employee-add-dialog'"></div>
+<div th:include="${viewPath}+'/components/project-status-dialog'"></div>
+<div th:include="${viewPath}+'/components/form-dialog'"></div>
+
+<div th:replace="shared/footer"></div>
+
+<script src="/webjars/adminlte/2.3.11/plugins/datepicker/bootstrap-datepicker.js"></script>
+<script>
+
+//    function loadTable(param) {
+//        $.get(param.url, function (data) {
+//            $(param.el).html(data);
+//        });
+//    }
+
+
+    //yo common function lai js ko app ma lage ko xa and Script bata footer ma load garekoxa
+//    function loadCombobox(param){
+////        let param is a student object and url is a parameter like student.id el means element student.el
+//        $.getJSON(param.url,function(data){
+//            $dropDown=$(param.el);
+//            $('<option/>').val('').html(param.title)
+//                    .appendTo($dropDown);
+//            $.each(data,function(index,row){
+//                 $('<option/>').val(row[param.data[0]]).html(row[param.data[1]])
+//                    .appendTo($dropDown);
+//            });
+//        });
+//    }
+
+
+    $(document).ready(function () {
+        loadDropdown();
+        $('.add-btn').on('click', function () {
+            showDialog({
+                el: '#form-dialog',
+                title: 'Create ' + pageTitle
+            });
+//            var $dialog = $('#form-dialog');
+//            $dialog.find('#modal-title')
+//                    .html("Create " + pageTitle);
+//            $dialog.modal();
+            $('input').val('');
+            $('select[name=client]').val('');
+            $('textarea[name=description]').val('');
+            $('input[type=checkbox]').attr('checked', false)
+                    .val('1');
+            $('input[name=id]').val(0);
+            return false;
+        });
+        $('#view-table').on('click', '.edit-btn', function () {
+            var $id = $(this).attr('rel');
+            $.getJSON('/' + pageURI + '/json/' + $id, function (data) {
+                mapInputData(data);//app vitra ko function
+//                yo for loop app ma lage ko xa
+//                for(attr in data){
+//                    $('input[name='+attr+']').val(data[attr]);
+//                }
+//                
+                //yo comment gareko part mathi ko for loop le kam garyo
+//                $('input[name=id]').val(data.id);
+//                $('input[name=name]').val(data.name);
+                $('select[name=client]').val(data.client.id);
+                $('textarea[name=description]').val(data.description);
+//                $('input[name=budget]').val(data.budget);
+//                $('input[name=deadline]').val(data.deadline);
+//                
+//                dialog lai jahile input map paxadi last ma rakhne
+
+                //yo muni comment gareko code show dialog le kam garyo
+//                var $dialog = $('#form-dialog');
+//                $dialog.find('#modal-title')
+//                        .html('Edit ' + pageTitle);
+
+                //$dialog.modal();
+                showDialog({
+                    el: '#form-dialog',
+                    title: 'Edit ' + pageTitle
+                });
+            });
+            return false;
+        });
+        $('#app-form').on('submit', function () {
+            $.post('/' + pageURI + '/json', $(this).serialize(),
+                    function (data) {
+                        if (data === 'success') {
+                            $('#form-dialog').modal('hide');
+
+//                    $.get('/'+ pageURI + '/table',function(data){
+//                        $('#view-table').html(data);
+//                    });
+//                     load table le yo comment gareko kam garyo
+                            loadTable({
+                                url: '/' + pageURI + '/table',
+                                el: '#view-table'
+                            });
+                        }
+                    });
+            return false;
+        });
+    
+//    copy
+        $('#view-table').on('click', '.view-emp-btn', function () {
+            var $id = $(this).attr('rel');
+            var $projectName = $(this).attr('data-name');
+            var $dialog = $('#employee-list-dialog');
+            $dialog.find('#modal-title').html('Employee List of ' +
+                    $projectName);
+            $.getJSON('/' + pageURI + '/employees/' + $id, function (data) {
+                $table = $('#employee-list-table tbody');
+                $table.find('tr').remove();
+                $.each(data, function (i, row) {
+                    var $tr = $('<tr/>');
+                    $('<td/>').html(row.id).appendTo($tr);
+                    $('<td/>').html(row.fullName).appendTo($tr);
+                    $('<td/>').html(row.email).appendTo($tr);
+                    $('<td/>').html(row.contactNo).appendTo($tr);
+                    //javascript ma th lekhnu pare na direct " row .id garna payo" ani kasko id line ho so data-project-id ko vanera define pani garnuparto
+                    //delete * from --- table where employee id is .. and project id is.. ko lagi id needed vayeko le muni ko line 
+                    $('<td><a data-project-id="' + $id + '" rel="' + row.id + '" class="btn btn-danger btn btn-xs remove-emp-btn"><span class="glyphicon glyphicon-trash"></span></a></td>')
+                            .appendTo($tr);
+                    $tr.appendTo($table);
+                });
+                $dialog.modal();
+            });
+        });
+    $("#employee-list-table").on('click', '.remove-emp-btn', function () {
+            if (confirm("Are you sure to remove ?")) {
+                var $this = $(this);
+                $projectId = $this.attr('data-project-id');
+                $employeeId = $this.attr('rel');
+                var $data = {
+                    projectId: $projectId,
+                    employeeId: $employeeId
+                };
+                $.post('/' + pageURI + '/remove-employee', $data, function (data) {
+                    console.log(data);
+                    //$(this) vane ko yo function vitra ko this ho $this vane ko chahi mathi vaiable banaisakeko variable ho
+                    $this.parent().parent().slideUp();
+//                    delete garisakepaxadi table refresh garnako lagi
+                    loadTable({
+                        el: '#view-table',
+                        url: '/' + pageURI + '/table'
+                    });
+                });
+            }
+        });
+    });
+
+//copy
+    
+    
+    function loadDropdown() {
+        loadCombobox({
+            url: '/clients/json',
+            el: 'select[name=client]',
+            title: 'Select Client',
+            data: ['id', 'name']
+        });
+        loadCombobox({
+            url: '/master/project-status/json',
+            el: 'select[name=status]',
+            title: 'Select Status',
+            data: ['id', 'name']
+        });
+
+        loadCombobox({
+            url: '/employees/json',
+            el: 'select[name=employees]',
+            title: 'Select Employees',
+            data: ['id', 'fullName']
+        });
+
+    }
+</script>
+

@@ -1,0 +1,46 @@
+<table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Name</th>
+                        <th>Client</th>
+                        <th>Budget</th>
+                        <th>Deadline</th>
+                        <th>Employees</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="record:${records}">
+                        <td th:text="${record.id}"></td>
+                        <td th:text="${record.name}"></td>
+                        <td th:text="${record.client.name}"></td>
+                        <td th:text="${record.budget}"></td>
+                        <td th:text="${record.deadline}"></td>
+                        <td>
+                            <!--rel is used for hide the id rel=>Relation-->
+                            <a href="javascript:void(0)" class="btn btn-default btn-xs view-emp-btn" th:data-name="${record.name}" th:rel="${record.id}" th:text="${record.employees.size()}">
+                            </a>
+                            <a href="javascript:void(0)" class="btn btn-default btn-xs" th:rel="${record.id}">
+                                <span class="glyphicon glyphicon-plus"></span>
+                            </a>
+                        </td>
+                        <td th:text="${#dates.format(record.created,'yyyy-MM-dd hh:mm:ss')}"></td>
+                        <!--.size-1 array ko size -1 vane ko last ko record-->
+                        <td th:style="'background:'+${record.status.get(record.status.size()-1).color}" th:text="${record.status.get(record.status.size()-1).name}"></td>
+                        
+                        <td>
+                            <!--rel is used for hide the id-->
+                            <a th:href="@{'/' + ${pageURI} + '/edit/'+${record.id}}" class="btn btn-warning btn-xs edit-btn" th:rel="${record.id}" th:title="'Edit '+${pageTitle}">
+                                <span class="glyphicon glyphicon-pencil"></span>
+                            </a>
+                            <a th:href="@{'/' + ${pageURI} + '/delete/'+ ${record.id}}" onclick="return confirm('Are you sure to Delete')" class="btn btn-danger btn-xs" th:rel="${record.id}" th:title="'Delete '+${pageTitle}">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </a>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
